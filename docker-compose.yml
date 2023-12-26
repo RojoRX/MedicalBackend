@@ -1,0 +1,25 @@
+version: '3'
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      TYPEORM_CONNECTION: mysql
+      TYPEORM_HOST: 192.168.0.125
+      TYPEORM_PORT: 3306
+      TYPEORM_USERNAME: root
+      TYPEORM_PASSWORD: root
+      TYPEORM_DATABASE: saludvida
+      TYPEORM_ENTITIES: dist/entities/**/*.entity.js
+      TYPEORM_SYNCHRONIZE: 'false'
+      TYPEORM_MIGRATIONS: dist/migrations/*.js
+      TYPEORM_MIGRATIONS_DIR: src/migrations
+      TYPEORM_LOGGING: 'true'
+    networks:
+      - downloads_mynetwork
+    restart: always  # Añade esta línea
+
+networks:
+  mynetwork:
+    external: true
