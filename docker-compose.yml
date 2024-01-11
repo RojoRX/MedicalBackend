@@ -19,7 +19,6 @@ services:
     networks:
       - downloads_mynetwork
     restart: always  # Añade esta línea
-
 networks:
-  mynetwork:
+  downloads_mynetwork:
     external: true

@@ -1,4 +1,5 @@
-import { createConnection } from 'typeorm';
+
+/*import { createConnection } from 'typeorm';
 import { Paciente } from './pacientes/paciente.entity';
 
 async function seed() {
@@ -6,8 +7,8 @@ async function seed() {
 
   // Datos de ejemplo para insertar en la tabla Paciente
   const pacientesData = [
-    { Nombre: 'Juan', Edad: 30, Sexo: 'Masculino', Domicilio: 'Calle A, Ciudad X', Carnet: 12344444 },
-    { Nombre: 'María', Edad: 25, Sexo: 'Femenino', Domicilio: 'Calle B, Ciudad Y', Carnet: 45688888 },
+    { Nombre: 'Juan', fechaNacimiento: '2000-01-04', Edad: 30, Sexo: 'Masculino', Domicilio: 'Calle A, Ciudad X', Carnet: 12344444 },
+    { Nombre: 'María', fechaNacimiento: '2000-01-04', Edad: 25, Sexo: 'Femenino', Domicilio: 'Calle B, Ciudad Y', Carnet: 45688888 },
     // Agrega más datos según sea necesario
   ];
 
@@ -21,4 +22,4 @@ async function seed() {
 }
 
 // Ejecutar la semilla
-seed();
+seed();*/

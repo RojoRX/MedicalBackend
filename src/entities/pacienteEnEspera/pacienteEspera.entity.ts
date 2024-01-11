@@ -8,9 +8,12 @@ export class PacienteEnEspera {
   @Column()
   Nombre: string;
 
-  @Column()
-  Edad: number;
+  @Column({ type: 'date', nullable: true })
+  FechaNacimiento: Date;
 
+  @Column({ default: "null"})
+  Edad: string;
+  
   @Column()
   Sexo: string;
 

@@ -12,8 +12,11 @@ export class Paciente {
   @Column({ length: 255 })
   Nombre: string;
 
-  @Column({ nullable: true })
-  Edad: number;
+  @Column({ type: 'date', nullable: true })
+  FechaNacimiento: Date;
+  
+  @Column({ default: "null"})
+  Edad: string;
 
   @Column({ length: 10 })
   Sexo: string;

@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Paciente } from 'src/entities/pacientes/paciente.entity';
 import { PacienteDuplicadoException } from 'src/exceptions/paciente-duplicado.exception';
 import { SocketGateway } from 'src/gateways/events.gateway';
+import { FechaService } from 'src/utils/birthDate';
 
 
 @Injectable()
@@ -13,6 +14,7 @@ export class PacienteService {
     @InjectRepository(Paciente)
     private pacienteRepository: Repository<Paciente>,
     private socketGateway: SocketGateway,
+    private fechaService: FechaService, 
   ) { }
 
 
@@ -46,15 +48,34 @@ export class PacienteService {
 
 
   async getAllPacientes(): Promise<Paciente[]> {
-    return await this.pacienteRepository.find({ where: { active: true } });
+    const pacientes = await this.pacienteRepository.find({ where: { active: true } });
+
+    // Convertir la edad a una cadena con el formato deseado
+    pacientes.forEach((paciente) => {
+      const fechaNacimiento = new Date(paciente.FechaNacimiento);
+      paciente.Edad = this.fechaService.convertirFechaNacimiento(fechaNacimiento);
+    });
+    
+
+    return pacientes;
   }
+  
   async getAllPacientesDesactivated(): Promise<Paciente[]> {
     return await this.pacienteRepository.find({ where: { active: false } });
   }
 
   async getPaciente(idPaciente: number): Promise<Paciente> {
-    return this.pacienteRepository.findOne({ where: { ID_Paciente: idPaciente } });
+    const paciente = await this.pacienteRepository.findOne({ where: { ID_Paciente: idPaciente } });
+  
+    // Convertir la edad a una cadena con el formato deseado
+    if (paciente && paciente.FechaNacimiento) {
+      const fechaNacimiento = new Date(paciente.FechaNacimiento);
+      paciente.Edad = this.fechaService.convertirFechaNacimiento(fechaNacimiento);
+    }
+  
+    return paciente;
   }
+  
   async editarPaciente(idPaciente: number, pacienteData: Partial<Paciente>): Promise<Paciente> {
     const pacienteActualizado = await this.pacienteRepository.findOne({ where: { ID_Paciente: idPaciente } });
   
