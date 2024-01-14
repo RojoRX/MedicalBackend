@@ -27,6 +27,7 @@ import { AllConsultService } from './proc_alm/all-consultation-pacient.service';
 import { PacientesEnEsperaModule } from './modules/pacientesEnEsperaModule.module';
 import { PacienteEnEspera } from './entities/pacienteEnEspera/pacienteEspera.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CitasModule } from './modules/citas.module';
 
 @Module({
   imports: [
@@ -47,7 +48,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService],
     }), PacienteModule, AntecedentesPersonales, ConsultaModule, 
-    ExamenGeneralModule, ExamenFisicoRegionalModule, ExamenesComplementariosModule, DiagnosticoTratamientoModule, PacientesEnEsperaModule
+    ExamenGeneralModule, ExamenFisicoRegionalModule, ExamenesComplementariosModule, DiagnosticoTratamientoModule, PacientesEnEsperaModule,
+    CitasModule
   ],
   controllers: [AppController, UsuarioController, AllDataController, LastDataController, AllConsultController],
   providers: [AppService, AllDataService, LastDataService, AllConsultService],

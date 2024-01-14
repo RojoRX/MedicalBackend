@@ -7,9 +7,10 @@ import { ConsultaService } from 'src/services/consulta.service';
 import { Paciente } from 'src/entities/pacientes/paciente.entity';
 import { ConsultaAllDataService } from 'src/proc_alm/insert-all-data-consultation.service';
 import { ConsultaAllDataController } from 'src/proc_alm/insert-all-data-consultation.controller';
+import { Cita } from 'src/entities/citas/citas.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Consulta, Paciente])],
+  imports: [TypeOrmModule.forFeature([Consulta, Paciente,Cita])],
   controllers: [ConsultaController, ConsultaAllDataController],
   providers: [ConsultaService, ConsultaAllDataService],
 })

@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { Consulta } from '../consulta/consulta.entity';
 import { AntecedentesPersonales } from '../antecedentes/antecedentes-personales.entity';
+import { Cita } from '../citas/citas.entity';
 
 @Entity({
 
@@ -44,4 +45,7 @@ export class Paciente {
 
   @OneToMany(() => AntecedentesPersonales, antecedentes => antecedentes.paciente)
   antecedentesPersonales: AntecedentesPersonales[];
+  
+  @OneToMany(() => Cita, cita => cita.paciente, { cascade: true })
+  citas: Cita[];
 }
