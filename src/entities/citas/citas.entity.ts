@@ -16,7 +16,7 @@ export class Cita {
   @Column({ type: 'enum', enum: ['consulta', 'reconsulta', 'emergencia', 'adulto mayor'] })
   tipo_consulta: string;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'datetime' })
   fecha_cita: Date;
 
   @Column({ type: 'boolean', default: true })

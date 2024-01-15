@@ -32,6 +32,10 @@ export class CitasController {
    async delete(@Param('id') id: number): Promise<void> {
      return this.citasService.delete(id);
    }
-
+  // Ruta para actualizar el campo enEspera de una cita
+  @Put(':id/en-espera')
+  async updateEnEspera(@Param('id') id: number): Promise<any> {
+    return this.citasService.updateEnEspera(id);
+  }
   // ...
 }

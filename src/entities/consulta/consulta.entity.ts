@@ -44,6 +44,7 @@ export class Consulta {
   diagnosticosTratamientos: DiagnosticoTratamiento[];
 
   @ManyToOne(() => Cita, cita => cita.consultas)
+  
   @JoinColumn({ name: 'ID_Cita' })
   cita: Cita;
 }

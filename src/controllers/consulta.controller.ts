@@ -13,17 +13,29 @@ export class ConsultaController {
   }
 
   @Post()
-  async createConsulta(@Body() consultaData: Consulta, @Body('pacienteId') pacienteId: number): Promise<any> {
+  async createConsulta(
+    @Body('pacienteId') pacienteId: number,
+    @Body() consultaData: { Motivo_Consulta: string, Nombre_Doctor: string, ID_Cita?: number }
+  ): Promise<any> {
     try {
-      const consultaId = await this.consultaService.createConsulta(pacienteId, consultaData);
-      return { message: 'Se creo la consulta correctamente', consultaId: consultaId }
+      const consultaId = await this.consultaService.createConsulta(
+        pacienteId,
+        consultaData.Motivo_Consulta,
+        consultaData.Nombre_Doctor,
+        consultaData.ID_Cita
+      );
+      return { message: 'Se creó la consulta correctamente', consultaId: consultaId };
     } catch (error) {
-      throw new HttpException({
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        error: 'Ha ocurrido un error al crear la consulta',
-      }, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: 'Ha ocurrido un error al crear la consulta',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
   }
+  
   
   
   @Put(':idConsulta')
