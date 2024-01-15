@@ -1,4 +1,5 @@
 // seed-antecedentes-personales.ts
+/*
 import { createConnection } from 'typeorm';
 import { AntecedentesPersonales } from './antecedentes/antecedentes-personales.entity';
 import { Paciente } from './pacientes/paciente.entity';
@@ -29,4 +30,4 @@ const antecedentesPersonalesData = [
     await connection.close();
   }
   
-  seedAntecedentesPersonales();
+  seedAntecedentesPersonales();*/
