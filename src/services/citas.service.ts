@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Cita } from "src/entities/citas/citas.entity";
 import { SocketGateway } from "src/gateways/events.gateway";
+import { FechaService } from "src/utils/birthDate";
 import { Between, Repository } from "typeorm";
 
 @Injectable()
@@ -10,40 +11,51 @@ export class CitasService {
     @InjectRepository(Cita)
     private citasRepository: Repository<Cita>,
     private socketGateway: SocketGateway,
+    private fechaService: FechaService,
   ) { }
 
   async findAll(): Promise<any[]> {
     const citas = await this.citasRepository.find({ where: { enEspera: true } });
-
-    return citas.map((cita) => {
-      const { paciente, fecha_cita, ...citaData } = cita;
-      const { ID_Paciente, Nombre, FechaNacimiento, Edad, Sexo, Domicilio, Carnet, active, enEspera, timestampLlegada, contacto } = paciente;
-
-      // Formatear la fecha en un formato legible (día, mes y hora)
-      const formattedFechaCita = new Intl.DateTimeFormat('es-ES', {
-        day: 'numeric',
-        month: 'long',
-        hour: 'numeric',
-        minute: 'numeric',
-      }).format(new Date(fecha_cita));
-
-      return {
-        ...citaData,
-        ID_Paciente,
-        Nombre,
-        FechaNacimiento,
-        Edad,
-        Sexo,
-        Domicilio,
-        Carnet,
-        active,
-        enEspera,
-        timestampLlegada,
-        contacto,
-        fecha_cita: formattedFechaCita,
-      };
-    });
+    return Promise.all(
+      citas.map(async (cita) => {
+        const { paciente, fecha_cita, ...citaData } = cita;
+        const { ID_Paciente, Nombre, FechaNacimiento, Sexo, Domicilio, Carnet, active, enEspera, timestampLlegada, contacto } = paciente;
+  
+        // Formatear la fecha en un formato legible (día, mes y hora)
+        const formattedFechaCita = new Intl.DateTimeFormat('es-ES', {
+          day: 'numeric',
+          month: 'long',
+          hour: 'numeric',
+          minute: 'numeric',
+        }).format(new Date(fecha_cita));
+  
+        // Convertir la FechaNacimiento a la Edad en el formato deseado
+        let edad = null;
+        if (FechaNacimiento) {
+          const fechaNacimiento = new Date(FechaNacimiento);
+          edad = this.fechaService.convertirFechaNacimiento(fechaNacimiento);
+        }
+  
+        return {
+          id: ID_Paciente, // Asignar un id único basado en el ID_Paciente
+          ...citaData,
+          ID_Paciente,
+          Nombre,
+          FechaNacimiento,
+          Edad: edad, // Usar la edad calculada
+          Sexo,
+          Domicilio,
+          Carnet,
+          active,
+          enEspera,
+          timestampLlegada,
+          contacto,
+          fecha_cita: formattedFechaCita,
+        };
+      })
+    );
   }
+  
 
 
 
@@ -139,59 +151,69 @@ export class CitasService {
     try {
       const startOfDay = new Date(`${day}T00:00:00`);
       const endOfDay = new Date(`${day}T23:59:59`);
-
+  
       const citas = await this.citasRepository.find({
         where: {
           fecha_cita: Between(startOfDay, endOfDay),
         },
       });
-
-      const formattedCitas = citas.map((cita) => {
-        const { paciente, fecha_cita, ...citaData } = cita;
-        const {
-          ID_Paciente,
-          Nombre,
-          FechaNacimiento,
-          Edad,
-          Sexo,
-          Domicilio,
-          Carnet,
-          active,
-          enEspera,
-          timestampLlegada,
-          contacto,
-        } = paciente;
-
-        const formattedFechaCita = new Intl.DateTimeFormat('es-ES', {
-          day: 'numeric',
-          month: 'long',
-          hour: 'numeric',
-          minute: 'numeric',
-        }).format(new Date(fecha_cita));
-
-        return {
-          ...citaData,
-          ID_Paciente,
-          Nombre,
-          FechaNacimiento,
-          Edad,
-          Sexo,
-          Domicilio,
-          Carnet,
-          active,
-          enEspera,
-          timestampLlegada,
-          contacto,
-          fecha_cita: formattedFechaCita,
-        };
-      });
-
+  
+      const formattedCitas = await Promise.all(
+        citas.map(async (cita) => {
+          const { paciente, fecha_cita, ...citaData } = cita;
+          const {
+            ID_Paciente,
+            Nombre,
+            FechaNacimiento,
+            Sexo,
+            Domicilio,
+            Carnet,
+            active,
+            enEspera,
+            timestampLlegada,
+            contacto,
+          } = paciente;
+  
+          // Convertir la FechaNacimiento a la Edad en el formato deseado
+          let edad = null;
+          if (FechaNacimiento) {
+            const fechaNacimiento = new Date(FechaNacimiento);
+            edad = this.fechaService.convertirFechaNacimiento(fechaNacimiento);
+          }
+  
+          const formattedFechaCita = new Intl.DateTimeFormat('es-ES', {
+            day: 'numeric',
+            month: 'long',
+            hour: 'numeric',
+            minute: 'numeric',
+          }).format(new Date(fecha_cita));
+  
+          return {
+            id: ID_Paciente, // Asignar un id único basado en el ID_Paciente
+            ...citaData,
+            ID_Paciente,
+            Nombre,
+            FechaNacimiento,
+            Edad: edad, // Usar la edad calculada
+            Sexo,
+            Domicilio,
+            Carnet,
+            active,
+            enEspera,
+            timestampLlegada,
+            contacto,
+            fecha_cita: formattedFechaCita,
+          };
+        })
+      );
+  
       return { status: 'success', data: formattedCitas };
     } catch (error) {
       console.error('Error fetching citas by day:', error);
       return { status: 'error', message: 'Error fetching citas by day' };
     }
   }
+  
 
   async getCitasPorDiaYMes(fecha: Date): Promise<any> {
     const startOfDay = new Date(fecha);

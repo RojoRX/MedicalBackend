@@ -1,7 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, BeforeInsert } from 'typeorm';
 import { Consulta } from '../consulta/consulta.entity';
 import { AntecedentesPersonales } from '../antecedentes/antecedentes-personales.entity';
 import { Cita } from '../citas/citas.entity';
+
 
 @Entity({
 
@@ -25,8 +26,8 @@ export class Paciente {
   @Column({ length: 255 })
   Domicilio: string;
 
-  @Column({ unique: true, type: 'numeric' })
-  Carnet: number;
+  @Column({ unique: true, nullable: true })
+  Carnet: string;
 
   @Column({ default: true }) // Agrega la propiedad active con valor por defecto true
   active: boolean;
@@ -49,3 +50,4 @@ export class Paciente {
   @OneToMany(() => Cita, cita => cita.paciente, { cascade: true })
   citas: Cita[];
 }
+

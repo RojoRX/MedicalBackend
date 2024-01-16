@@ -6,7 +6,7 @@ import { Paciente } from 'src/entities/pacientes/paciente.entity';
 import { PacienteDuplicadoException } from 'src/exceptions/paciente-duplicado.exception';
 import { SocketGateway } from 'src/gateways/events.gateway';
 import { FechaService } from 'src/utils/birthDate';
-
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class PacienteService {
@@ -19,34 +19,40 @@ export class PacienteService {
 
 
   async crearPaciente(datosPaciente: any): Promise<Paciente> {
-    const Carnet = datosPaciente.Carnet;
-    if (Carnet !== undefined) {
-      // Convertir los campos a mayúsculas
-      datosPaciente.Nombre = datosPaciente.Nombre?.toUpperCase() || '';
-      datosPaciente.Domicilio = datosPaciente.Domicilio?.toUpperCase() || '';
-      datosPaciente.Sexo = datosPaciente.Sexo?.toUpperCase() || '';
+    try {
+      if (datosPaciente) {
+        // Convertir los campos a mayúsculas
+        datosPaciente.Nombre = datosPaciente.Nombre?.toUpperCase() || '';
+        datosPaciente.Domicilio = datosPaciente.Domicilio?.toUpperCase() || '';
+        datosPaciente.Sexo = datosPaciente.Sexo?.toUpperCase() || '';
   
-      const pacienteExistente = await this.pacienteRepository.findOne({ where: { Carnet } });
+        // Generar Carnet automáticamente si no se proporciona
+        if (datosPaciente.Carnet === undefined || datosPaciente.Carnet === null) {
+          datosPaciente.Carnet = uuidv4().replace(/-/g, '').substring(0, 8);
+        }
   
-      if (pacienteExistente === null) {
-        try {
+        // Asegurarse de que el campo contacto tenga un valor válido
+        datosPaciente.contacto = datosPaciente.contacto || 70000000; // Cambia el 0 por cualquier valor predeterminado válido según tu lógica
+  
+        const pacienteExistente = await this.pacienteRepository.findOne({ where: { Carnet: datosPaciente.Carnet } });
+  
+        if (pacienteExistente === null) {
           const pacienteCreado = await this.pacienteRepository.save(datosPaciente);
           return pacienteCreado;
-        } catch (error) {
-          // Manejo de otros errores
-          throw new HttpException('Error al crear el paciente', HttpStatus.INTERNAL_SERVER_ERROR);
+        } else {
+          throw new HttpException('Ya existe un paciente con este carnet', HttpStatus.BAD_REQUEST);
         }
       } else {
-        throw new HttpException('Ya existe un paciente con este carnet', HttpStatus.BAD_REQUEST);
+        throw new HttpException('Error al crear el paciente: Datos del paciente no proporcionados', HttpStatus.BAD_REQUEST);
       }
-    } else {
-      throw new HttpException('Error al crear el paciente', HttpStatus.INTERNAL_SERVER_ERROR);
+    } catch (error) {
+      console.error('Error en crearPaciente:', error);
+      throw new HttpException('Error interno al crear el paciente', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
   
-
-
-
+  
+  
   async getAllPacientes(): Promise<Paciente[]> {
     const pacientes = await this.pacienteRepository.find({ where: { active: true } });
 
@@ -55,8 +61,6 @@ export class PacienteService {
       const fechaNacimiento = new Date(paciente.FechaNacimiento);
       paciente.Edad = this.fechaService.convertirFechaNacimiento(fechaNacimiento);
     });
-    
-
     return pacientes;
   }
   
