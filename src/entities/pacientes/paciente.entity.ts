@@ -37,7 +37,7 @@ export class Paciente {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   timestampLlegada: Date;
 
-  @Column({ nullable: true }) // Ajusta el tipo de datos para el número de celular
+  @Column({ default: 70000000 })
   contacto: number;
 
   @OneToMany(() => Consulta, consulta => consulta.paciente, { cascade: true })
