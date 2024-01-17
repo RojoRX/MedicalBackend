@@ -129,17 +129,16 @@ BEGIN
         END IF;
     END IF;
 END //
-
 DELIMITER //
 
 CREATE TRIGGER before_paciente_insert_update
-BEFORE INSERT ON Paciente
+BEFORE INSERT ON paciente
 FOR EACH ROW
 SET NEW.Edad = FLOOR(DATEDIFF(CURDATE(), NEW.FechaNacimiento) / 365);
 //
 
 CREATE TRIGGER before_paciente_update
-BEFORE UPDATE ON Paciente
+BEFORE UPDATE ON paciente
 FOR EACH ROW
 SET NEW.Edad = FLOOR(DATEDIFF(CURDATE(), NEW.FechaNacimiento) / 365);
 //

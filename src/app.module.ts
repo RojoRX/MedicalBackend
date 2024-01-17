@@ -29,6 +29,7 @@ import { PacienteEnEspera } from './entities/pacienteEnEspera/pacienteEspera.ent
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CitasModule } from './modules/citas.module';
 import { AntecedentesPersonalesModule } from './modules/antecedentes-personales.module';
+import { InformeModule } from './modules/informe.module';
 
 @Module({
   imports: [
@@ -50,7 +51,7 @@ import { AntecedentesPersonalesModule } from './modules/antecedentes-personales.
       inject: [ConfigService],
     }), PacienteModule, AntecedentesPersonales, ConsultaModule, 
     ExamenGeneralModule, ExamenFisicoRegionalModule, ExamenesComplementariosModule, DiagnosticoTratamientoModule, PacientesEnEsperaModule,
-    CitasModule, AntecedentesPersonalesModule
+    CitasModule, AntecedentesPersonalesModule, InformeModule
   ],
   controllers: [AppController, UsuarioController, AllDataController, LastDataController, AllConsultController],
   providers: [AppService, AllDataService, LastDataService, AllConsultService],

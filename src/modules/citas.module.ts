@@ -8,6 +8,7 @@ import { Paciente } from "src/entities/pacientes/paciente.entity";
 import { SocketGateway } from "src/gateways/events.gateway";
 import { CitasService } from "src/services/citas.service";
 import { ConsultaService } from "src/services/consulta.service";
+import { PdfService } from "src/services/pdf.service";
 import { FechaService } from "src/utils/birthDate";
 
 @Module({
