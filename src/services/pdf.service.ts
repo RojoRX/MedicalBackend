@@ -16,7 +16,7 @@ type StatsData = {
   emergencias?: number;
   adultoMayor?: number;
   doctores?: Record<string, DoctorStats>;
-};
+}; 
 
 @Injectable()
 export class PdfService {
