@@ -1,5 +1,7 @@
-import * as PDFDocument from 'pdfkit';
+import * as PDFKit from 'pdfkit';
 import { Injectable } from '@nestjs/common';
+
+const PDFDocument = require('pdfkit-table');
 
 type DoctorStats = {
   totalCitas?: number;
@@ -16,7 +18,7 @@ type StatsData = {
   emergencias?: number;
   adultoMayor?: number;
   doctores?: Record<string, DoctorStats>;
-}; 
+};
 
 @Injectable()
 export class PdfService {
@@ -30,44 +32,76 @@ export class PdfService {
 
   private async generarInforme(stats: StatsData, tipo: string, fecha: Date): Promise<Buffer> {
     return new Promise<Buffer>((resolve, reject) => {
-      const buffers: any[] = [];
-      const doc = new PDFDocument();
+      const doc = new PDFDocument({ layout: 'landscape', margin: 30, size: 'A4' });
+      const pdfBuffer: Buffer[] = [];
 
-      // Registro de buffers para construir el PDF
-      doc.on('data', (chunk) => buffers.push(chunk));
-      doc.on('end', () => {
-        const pdfBuffer = Buffer.concat(buffers);
-        console.log(`Informe ${tipo} PDF generado con éxito.`);
-        resolve(pdfBuffer);
+      doc.on('data', (chunk) => {
+        pdfBuffer.push(chunk);
       });
-      doc.on('error', (error) => reject(error));
 
-      // Encabezado del informe
-      doc.fontSize(20).font('Helvetica-Bold').text(`Informe de Citas Médicas - ${tipo}`, { align: 'center' });
-      doc.moveDown().lineTo(500, 20).stroke('#000');
+      doc.on('end', () => {
+        const combinedBuffer = Buffer.concat(pdfBuffer);
+        resolve(combinedBuffer);
+      });
 
-      // Información general
-      doc.moveDown().fontSize(14).font('Helvetica-Bold').text(`Estadísticas ${tipo}`, { underline: true });
-      doc.fontSize(12).font('Helvetica').text(`Fecha: ${(fecha)}`);
-      doc.text(`Total de Citas: ${stats.totalCitas || 0}`);
+      doc.on('error', (error) => {
+        reject(error);
+      });
 
-      // Estadísticas por doctor
-      if (stats.doctores) {
-        doc.moveDown().fontSize(14).font('Helvetica-Bold').text('Estadísticas por Doctor', { underline: true });
+      // Formatear la fecha en un formato de fácil lectura
+      const fechaFormateada = fecha.toISOString().slice(0, 10);
 
-        Object.entries(stats.doctores).forEach(([doctor, doctorStats]: [string, DoctorStats]) => {
-          doc.moveDown().fontSize(12).font('Helvetica').text(`Estadísticas para ${doctor}`, { underline: true });
-          doc.text(`Total de Citas: ${doctorStats.totalCitas || 0}`);
-          doc.text(`Consultas: ${doctorStats.consultas || 0}`);
-          doc.text(`Reconsultas: ${doctorStats.reconsultas || 0}`);
-          doc.text(`Emergencias: ${doctorStats.emergencias || 0}`);
-          doc.text(`Adultos Mayores: ${doctorStats.adultoMayor || 0}`);
-        });
-      }
+      doc.fontSize(18).text(`Informe de Citas Médicas - ${tipo} (${fechaFormateada})\n\n`, { align: 'center' });
 
-      // Finalizar y generar el PDF
+      const table = {
+        headers: [
+          'Doctor',
+          'Total de Citas',
+          'Consultas',
+          'Reconsultas',
+          'Emergencias',
+          'Adultos Mayores'
+        ],
+        rows: Object.entries(stats.doctores).map(([doctor, doctorStats]: [string, DoctorStats]) => [
+          doctor,
+          doctorStats.totalCitas || 0,
+          doctorStats.consultas || 0,
+          doctorStats.reconsultas || 0,
+          doctorStats.emergencias || 0,
+          doctorStats.adultoMayor || 0,
+        ]),
+      };
+
+      doc.table(table, {
+        prepareHeader: () => doc.font('Helvetica-Bold').fontSize(12),
+        prepareRow: (row, i) => doc.font('Helvetica').fontSize(10),
+      });
+
+      doc.moveDown().moveDown();
+
+      const totalTable = {
+        headers: [
+          'Total de Citas',
+          'Consultas',
+          'Reconsultas',
+          'Emergencias',
+          'Adultos Mayores'
+        ],
+        rows: [[
+          stats.totalCitas || 0,
+          stats.consultas || 0,
+          stats.reconsultas || 0,
+          stats.emergencias || 0,
+          stats.adultoMayor || 0,
+        ]],
+      };
+
+      doc.table(totalTable, {
+        prepareHeader: () => doc.font('Helvetica-Bold').fontSize(12),
+        prepareRow: (row, i) => doc.font('Helvetica').fontSize(10),
+      });
+
       doc.end();
     });
   }
-
 }

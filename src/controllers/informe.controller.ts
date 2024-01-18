@@ -1,5 +1,4 @@
-// informe.controller.ts
-import { Controller, Get, Query, Res, StreamableFile } from "@nestjs/common";
+import { Controller, Get, Param, Res } from "@nestjs/common";
 import { PdfService } from "src/services/pdf.service";
 import { CitasService } from "src/services/citas.service";
 import { Readable } from "stream";
@@ -13,8 +12,8 @@ export class InformeController {
     private readonly pdfService: PdfService,
   ) {}
 
-  @Get('mensual')
-  async generarInformeMensualPDF(@Query('fecha') fecha: string, @Res() response: Response): Promise<void> {
+  @Get('mensual/:fecha')
+  async generarInformeMensualPDF(@Param('fecha') fecha: string, @Res() response: Response): Promise<void> {
     const fechaObj = fecha ? new Date(fecha) : new Date();
 
     try {
@@ -26,12 +25,11 @@ export class InformeController {
     }
   }
 
-  @Get('diario')
-  async generarInformeDiarioPDF(@Query('fecha') fecha: string, @Res() response: Response): Promise<void> {
+  @Get('diario/:fecha')
+  async generarInformeDiarioPDF(@Param('fecha') fecha: string, @Res() response: Response): Promise<void> {
     const fechaObj = fecha ? new Date(fecha) : new Date();
 
     try {
-      console.log(fechaObj)
       const stats = await this.citasService.getCitasPorDia(fechaObj);
       const pdfBuffer = await this.pdfService.generarInformeDiario(stats.porDia, fechaObj);
 
@@ -40,17 +38,16 @@ export class InformeController {
       this.handleErrorResponse(response, error, 'Error generando informe diario en PDF');
     }
   }
-
-
   private enviarRespuestaPDF(response: Response, pdfBuffer: Buffer, fechaObj: Date, tipoInforme: 'diario' | 'mensual'): void {
     const fileName = `informe_${tipoInforme}_${fechaObj.toISOString()}.pdf`;
-
+  
     response.setHeader('Content-Type', 'application/pdf');
-    response.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+    response.setHeader('Content-Disposition', `inline; filename=${fileName}`);
     response.setHeader('Content-Length', pdfBuffer.length);
-
+  
     response.send(pdfBuffer);
   }
+  
 
   private handleErrorResponse(response: Response, error: Error, message: string): void {
     console.error(message, error);

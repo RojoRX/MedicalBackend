@@ -1,96 +1,77 @@
 import * as PDFKit from 'pdfkit';
 import { Readable } from 'stream';
 import { Injectable } from '@nestjs/common';
+const PDFDocument = require('pdfkit-table');
 
 @Injectable()
 export class TablePdfService {
-  async generatePdf(data: any[]): Promise<Buffer> {
-    const pdfDoc = new PDFKit({ layout: 'landscape' });
-    const pdfBuffer: Buffer[] = [];
+    async generatePdf(data: any[]): Promise<Buffer> {
+        const doc = new PDFDocument({ layout: 'landscape', margin: 30, size: 'A4' });
+        const pdfBuffer: Buffer[] = [];
 
-    pdfDoc.on('data', (chunk) => {
-      pdfBuffer.push(chunk);
-    });
+        doc.on('data', (chunk) => {
+            pdfBuffer.push(chunk);
+        });
 
-    return new Promise<Buffer>((resolve, reject) => {
-      pdfDoc.on('end', () => {
-        const combinedBuffer = Buffer.concat(pdfBuffer);
-        resolve(combinedBuffer);
-      });
+        return new Promise<Buffer>((resolve, reject) => {
+            doc.on('end', () => {
+                const combinedBuffer = Buffer.concat(pdfBuffer);
+                resolve(combinedBuffer);
+            });
 
-      pdfDoc.on('error', (error) => {
-        reject(error);
-      });
+            doc.on('error', (error) => {
+                reject(error);
+            });
 
-      pdfDoc.fontSize(12).text('Lista de Citas por Día\n\n');
-      this.drawTable(pdfDoc, {
-        headers: [
-          'Número de Cita',
-          'Nombre del Paciente',
-          'Fecha de Nacimiento',
-          'Carnet o Identificador',
-          'Edad',
-          'Sexo',
-          'Domicilio',
-          'Doctor Asignado',
-          'Tipo de Consulta',
-          'Contacto',
-          'Fecha de Cita',
-        ],
-        rows: data.map((cita) => [
-          cita.id_cita,
-          cita.Nombre,
-          cita.FechaNacimiento,
-          cita.Carnet,
-          cita.Edad,
-          cita.Sexo,
-          cita.Domicilio,
-          cita.doctor,
-          cita.tipo_consulta,
-          cita.contacto,
-          cita.fecha_cita,
-        ]),
-      });
+            doc.fontSize(18).text('Registro de Pacientes por Dia\n\n', { align: 'center' });
+            doc.moveDown();
+            
+            /*
+            doc.text('Fecha de emisión: ' + new Date().toLocaleDateString(), { align: 'left' });
+            doc.moveDown();
+            doc.text('Hora de emisión: ' + new Date().toLocaleTimeString(), { align: 'left' });
+      */
+            const table = {
+                headers: [
+                    'Nª',
+                    'Nombre del Paciente',
+                    //'Fecha de Nacimiento',
+                    'Carnet o Identificador',
+                    'Edad',
+                    'Sexo',
+                    'Domicilio',
+                    'Doctor Asignado',
+                    'Tipo de Consulta',
+                    'Contacto',
+                    'Fecha de Cita',
+                ],
+                rows: data.map((cita) => [
+                    cita.id_cita,
+                    cita.Nombre,
+                    //cita.FechaNacimiento,
+                    cita.Carnet,
+                    cita.Edad,
+                    cita.Sexo,
+                    cita.Domicilio,
+                    cita.doctor,
+                    cita.tipo_consulta,
+                    cita.contacto,
+                    cita.fecha_cita,
+                ]),
+            };
 
-      pdfDoc.end();
-    });
-  }
+            doc.table(table, {
+                prepareHeader: () => doc.font('Helvetica-Bold').fontSize(12),
+                prepareRow: (row, i) => doc.font('Helvetica').fontSize(10),
+            });
 
-  private drawTable(doc: PDFKit.PDFDocument, table: { headers: string[]; rows: any[][] }): void {
-    const { headers, rows } = table;
-    const columnWidths = this.calculateColumnWidths([headers, ...rows], doc);
+            doc.moveDown().moveDown();
 
-    doc.font('Helvetica-Bold');
+            /*
+              doc.fontSize(12).text('Este documento es válido para cualquier procedimiento legal.', { align: 'left' });
+              */
 
-    for (let i = 0; i < headers.length; i++) {
-      doc.text(headers[i], columnWidths[i].start, doc.y, { width: columnWidths[i].width, align: 'left' });
+            doc.end();
+        });
     }
-
-    doc.moveDown();
-
-    doc.font('Helvetica');
-
-    for (const row of rows) {
-      for (let i = 0; i < row.length; i++) {
-        doc.text(row[i].toString(), columnWidths[i].start, doc.y, { width: columnWidths[i].width, align: 'left' });
-      }
-      doc.moveDown();
-    }
-  }
-
-  private calculateColumnWidths(rows: any[][], doc: PDFKit.PDFDocument): { start: number; width: number }[] {
-    const columnWidths: { start: number; width: number }[] = [];
-
-    for (let i = 0; i < rows[0].length; i++) {
-      const columnMaxWidth = Math.max(
-        doc.widthOfString(rows[0][i].toString()),
-        ...rows.slice(1).map((row) => doc.widthOfString(row[i].toString()))
-      );
-
-      columnWidths.push({ start: doc.x, width: columnMaxWidth + 10 }); // Add padding
-      doc.moveUp(); // Move the cursor back up to the original position
-    }
-
-    return columnWidths;
-  }
 }
