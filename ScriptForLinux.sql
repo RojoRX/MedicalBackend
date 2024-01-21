@@ -129,6 +129,7 @@ BEGIN
         END IF;
     END IF;
 END //
+
 DELIMITER //
 
 CREATE TRIGGER before_paciente_insert_update
@@ -143,3 +144,60 @@ FOR EACH ROW
 SET NEW.Edad = FLOOR(DATEDIFF(CURDATE(), NEW.FechaNacimiento) / 365);
 //
 DELIMITER ;
+
+DELIMITER //
+
+CREATE TRIGGER before_paciente_insert_update
+BEFORE INSERT ON paciente
+FOR EACH ROW
+BEGIN
+    DECLARE age_years INT;
+    DECLARE age_months INT;
+    DECLARE age_days INT;
+
+    SET age_years = FLOOR(DATEDIFF(CURDATE(), NEW.FechaNacimiento) / 365);
+    SET age_months = FLOOR(MOD(DATEDIFF(CURDATE(), NEW.FechaNacimiento), 365) / 30);
+    SET age_days = MOD(DATEDIFF(CURDATE(), NEW.FechaNacimiento), 30);
+
+    IF age_years > 1 THEN
+        SET NEW.Edad = CONCAT(age_years, ' años');
+    ELSEIF age_years = 1 THEN
+        SET NEW.Edad = CONCAT(age_years, ' año');
+    ELSEIF age_months > 0 THEN
+        SET NEW.Edad = CONCAT(age_months, ' meses');
+    ELSE
+        SET NEW.Edad = 'Menos de un mes';
+    END IF;
+END //
+
+CREATE TRIGGER before_paciente_update
+BEFORE UPDATE ON paciente
+FOR EACH ROW
+BEGIN
+    DECLARE age_years INT;
+    DECLARE age_months INT;
+    DECLARE age_days INT;
+
+    SET age_years = FLOOR(DATEDIFF(CURDATE(), NEW.FechaNacimiento) / 365);
+    SET age_months = FLOOR(MOD(DATEDIFF(CURDATE(), NEW.FechaNacimiento), 365) / 30);
+    SET age_days = MOD(DATEDIFF(CURDATE(), NEW.FechaNacimiento), 30);
+
+    IF age_years > 1 THEN
+        SET NEW.Edad = CONCAT(age_years, ' años');
+    ELSEIF age_years = 1 THEN
+        SET NEW.Edad = CONCAT(age_years, ' año');
+    ELSEIF age_months > 0 THEN
+        SET NEW.Edad = CONCAT(age_months, ' meses');
+    ELSE
+        SET NEW.Edad = 'Menos de un mes';
+    END IF;
+END //
+
+DELIMITER ;
+
+DELIMITER //
+DROP TRIGGER IF EXISTS before_paciente_insert_update;
+DROP TRIGGER IF EXISTS before_paciente_update;
+DELIMITER ;
+
+

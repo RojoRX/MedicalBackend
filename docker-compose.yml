@@ -16,6 +16,7 @@ services:
       TYPEORM_MIGRATIONS: dist/migrations/*.js
       TYPEORM_MIGRATIONS_DIR: src/migrations
       TYPEORM_LOGGING: 'true'
+      TZ: 'America/La_Paz'
     networks:
       - downloads_mynetwork
     restart: always  # Añade esta línea

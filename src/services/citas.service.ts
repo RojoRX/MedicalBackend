@@ -255,8 +255,8 @@ export class CitasService {
   
   private async getCitasPorRangoDeFechas(start: string, end: string): Promise<Cita[]> {
     // Convertir las fechas a formato YYYY-MM-DD
-    const startStr = start + 'T00:00:00.000Z';
-    const endStr = end + 'T23:59:59.999Z';
+    const startStr = start + 'T00:00:00';
+    const endStr = end + 'T23:59:59';
   
     // Convertir las cadenas de fecha y hora a objetos Date
     const startLocal = new Date(startStr);
@@ -265,6 +265,8 @@ export class CitasService {
     // Consultar utilizando las fechas en formato de objeto Date
     return this.citasRepository.find({ where: { fecha_cita: Between(startLocal, endLocal) } });
   }
+  
+  
   
   
   
