@@ -21,7 +21,10 @@ export class Cita {
 
   @Column({ type: 'boolean', default: true })
   enEspera: boolean;
-  
+
+  @Column({ type: 'boolean', default: false }) // Nuevo campo para indicar si la cita ha sido eliminada
+  eliminada: boolean;
+
   @OneToMany(() => Consulta, consulta => consulta.cita, { cascade: true })
   consultas: Consulta[];
 }

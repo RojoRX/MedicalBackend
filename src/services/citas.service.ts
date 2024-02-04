@@ -15,7 +15,7 @@ export class CitasService {
   ) { }
 
   async findAll(): Promise<any[]> {
-    const citas = await this.citasRepository.find({ where: { enEspera: true } });
+    const citas = await this.citasRepository.find({ where: { enEspera: true,  eliminada: false } });
     return Promise.all(
       citas.map(async (cita) => {
         const { paciente, fecha_cita, ...citaData } = cita;
@@ -146,6 +146,27 @@ export class CitasService {
       return { status: 'error', message: 'Error al actualizar el campo enEspera', error: error.message };
     }
   }
+  // Cambiar el estado de una cita a "eliminada" y actualizar enEspera a false
+async eliminarCita(id: number): Promise<any> {
+  try {
+    const cita = await this.citasRepository.findOne({ where: { id_cita: id } });
+
+    if (!cita) {
+      return { status: 'error', message: 'Cita no encontrada' };
+    }
+
+    cita.eliminada = true; // Marcar la cita como "eliminada"
+    cita.enEspera = false; // Desmarcar la cita como "en espera"
+
+    await this.citasRepository.save(cita);
+
+    this.socketGateway.server.emit('Socket emitido');
+    return { status: 'success', message: 'Cita eliminada correctamente', cita };
+  } catch (error) {
+    return { status: 'error', message: 'Error al eliminar la cita', error: error.message };
+  }
+}
+
   // Obtener todas las citas por día
   async findByDay(day: string): Promise<{ status: string; message?: string; data?: any[] }> {
     try {
@@ -154,7 +175,7 @@ export class CitasService {
 
       const citas = await this.citasRepository.find({
         where: {
-          fecha_cita: Between(startOfDay, endOfDay),
+          fecha_cita: Between(startOfDay, endOfDay), eliminada: false
         },
       });
 
@@ -263,7 +284,7 @@ export class CitasService {
     const endLocal = new Date(endStr);
   
     // Consultar utilizando las fechas en formato de objeto Date
-    return this.citasRepository.find({ where: { fecha_cita: Between(startLocal, endLocal) } });
+    return this.citasRepository.find({ where: { fecha_cita: Between(startLocal, endLocal), eliminada: false } });
   }
   
   

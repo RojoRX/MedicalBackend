@@ -28,16 +28,29 @@ export class CitasController {
      return this.citasService.update(id, cita);
    }
  
-   // Borrar una cita
+/*    // Borrar una cita
    @Delete(':id')
    async delete(@Param('id') id: number): Promise<void> {
      return this.citasService.delete(id);
-   }
+   } */
   // Ruta para actualizar el campo enEspera de una cita
   @Put(':id/en-espera')
   async updateEnEspera(@Param('id') id: number): Promise<any> {
     return this.citasService.updateEnEspera(id);
   }
+
+   // Eliminar una cita
+   @Delete(':id')
+   async eliminarCita(@Param('id') id: number): Promise<any> {
+     try {
+       const resultado = await this.citasService.eliminarCita(id);
+       return resultado;
+     } catch (error) {
+       return { status: 'error', message: 'Error al eliminar la cita', error: error.message };
+     }
+   }
+  
+
   // ...
   @Get('by-day/:day')
   async getCitasByDay(@Param('day') day: string) {
