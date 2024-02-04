@@ -26,21 +26,23 @@ export class PacienteService {
         datosPaciente.Domicilio = datosPaciente.Domicilio?.toUpperCase() || '';
         datosPaciente.Sexo = datosPaciente.Sexo?.toUpperCase() || '';
   
-        // Generar Carnet automáticamente si no se proporciona
-        if (datosPaciente.Carnet === undefined || datosPaciente.Carnet === null) {
+        // Verificar si Carnet es nulo, undefined o cadena vacía
+        if (datosPaciente.Carnet === undefined || datosPaciente.Carnet === null || datosPaciente.Carnet === '') {
           datosPaciente.Carnet = uuidv4().replace(/-/g, '').substring(0, 8);
         }
   
-        // Asegurarse de que el campo contacto tenga un valor válido
-        datosPaciente.contacto = datosPaciente.contacto || 70000000; // Cambia el 0 por cualquier valor predeterminado válido según tu lógica
+        // Validar si el Carnet es un valor no vacío antes de intentar guardarlo
+        if (datosPaciente.Carnet.trim() !== '') {
+          const pacienteExistente = await this.pacienteRepository.findOne({ where: { Carnet: datosPaciente.Carnet } });
   
-        const pacienteExistente = await this.pacienteRepository.findOne({ where: { Carnet: datosPaciente.Carnet } });
-  
-        if (pacienteExistente === null) {
-          const pacienteCreado = await this.pacienteRepository.save(datosPaciente);
-          return pacienteCreado;
+          if (pacienteExistente === null) {
+            const pacienteCreado = await this.pacienteRepository.save(datosPaciente);
+            return pacienteCreado;
+          } else {
+            throw new HttpException('Ya existe un paciente con este carnet', HttpStatus.BAD_REQUEST);
+          }
         } else {
-          throw new HttpException('Ya existe un paciente con este carnet', HttpStatus.BAD_REQUEST);
+          throw new HttpException('Error al crear el paciente: Carnet no válido', HttpStatus.BAD_REQUEST);
         }
       } else {
         throw new HttpException('Error al crear el paciente: Datos del paciente no proporcionados', HttpStatus.BAD_REQUEST);
@@ -81,35 +83,46 @@ export class PacienteService {
   }
   
   async editarPaciente(idPaciente: number, pacienteData: Partial<Paciente>): Promise<Paciente> {
-    const pacienteActualizado = await this.pacienteRepository.findOne({ where: { ID_Paciente: idPaciente } });
+    try {
+      const pacienteActualizado = await this.pacienteRepository.findOne({ where: { ID_Paciente: idPaciente } });
   
-    if (!pacienteActualizado) {
-      throw new Error(`Paciente ${idPaciente} no encontrado`);
+      if (!pacienteActualizado) {
+        throw new Error(`Paciente ${idPaciente} no encontrado`);
+      }
+  
+      // Convertir campos a mayúsculas si existen en el pacienteData
+      if (pacienteData.Nombre) {
+        pacienteData.Nombre = pacienteData.Nombre.toUpperCase();
+      }
+  
+      if (pacienteData.Domicilio) {
+        pacienteData.Domicilio = pacienteData.Domicilio.toUpperCase();
+      }
+  
+      if (pacienteData.Sexo) {
+        pacienteData.Sexo = pacienteData.Sexo.toUpperCase();
+      }
+  
+      // Verificar si Carnet es nulo, undefined o cadena vacía
+      if (pacienteData.Carnet === undefined || pacienteData.Carnet === null || pacienteData.Carnet === '') {
+        pacienteData.Carnet = uuidv4().replace(/-/g, '').substring(0, 8);
+      }
+  
+      // Actualiza las propiedades del paciente con los datos recibidos
+      Object.assign(pacienteActualizado, pacienteData);
+  
+      // Actualiza el campo timestampLlegada con el valor del sistema
+      pacienteActualizado.timestampLlegada = new Date();
+  
+      const pacienteGuardado = await this.pacienteRepository.save(pacienteActualizado);
+  
+      return pacienteGuardado;
+    } catch (error) {
+      console.error('Error en editarPaciente:', error);
+      throw new HttpException('Error interno al editar el paciente', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-  
-    // Convertir campos a mayúsculas si existen en el pacienteData
-    if (pacienteData.Nombre) {
-      pacienteData.Nombre = pacienteData.Nombre.toUpperCase();
-    }
-  
-    if (pacienteData.Domicilio) {
-      pacienteData.Domicilio = pacienteData.Domicilio.toUpperCase();
-    }
-  
-    if (pacienteData.Sexo) {
-      pacienteData.Sexo = pacienteData.Sexo.toUpperCase();
-    }
-  
-    // Actualiza las propiedades del paciente con los datos recibidos
-    Object.assign(pacienteActualizado, pacienteData);
-  
-    // Actualiza el campo timestampLlegada con el valor del sistema
-    pacienteActualizado.timestampLlegada = new Date();
-  
-    const pacienteGuardado = await this.pacienteRepository.save(pacienteActualizado);
-  
-    return pacienteGuardado;
   }
+  
   
 
 
